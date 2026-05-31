@@ -1,14 +1,5 @@
 # 🪸 CoralMind — Personal Knowledge Dashboard
 
-> A hackathon project built for the **Coral Hackathon** that lets you query your personal knowledge base — notes, PDFs, CSVs, and more — using natural language and SQL, all in one place.
-
-![CoralMind Dashboard](https://img.shields.io/badge/Coral-Hackathon-7c6af7?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEycy00LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyeiIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==)
-![HTML](https://img.shields.io/badge/HTML-Single%20File-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![Groq](https://img.shields.io/badge/Groq-AI%20Powered-00A67E?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-
----
-
 ## ✨ What it does
 
 CoralMind simulates what a **Coral-powered** personal knowledge dashboard would look like. You connect multiple data sources (Notion notes, PDFs, CSV files, GitHub repos, Markdown), then:
