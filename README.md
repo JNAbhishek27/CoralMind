@@ -9,7 +9,6 @@ CoralMind simulates what a **Coral-powered** personal knowledge dashboard would 
 - **Add new sources on the fly** — paste any content to index it immediately
 - **Track query history** — every search saved and replayable
 
-### 🎯 Judging criteria addressed
 
 | Criterion | How |
 |---|---|
