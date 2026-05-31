@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coral Knowledge Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --bg2: #13131a;
+    --bg3: #1a1a24;
+    --bg4: #22222f;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8e8f0;
+    --text2: #9090a8;
+    --text3: #5a5a72;
+    --accent: #7c6af7;
+    --accent2: #a594ff;
+    --accent-glow: rgba(124,106,247,0.15);
+    --teal: #4ecdc4;
+    --coral: #ff6b6b;
+    --amber: #ffd166;
+    --green: #06d6a0;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+    --display: 'Syne', sans-serif;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID LAYOUT ── */
+  .app {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    grid-template-rows: 56px 1fr;
+    grid-template-areas:
+      "sidebar topbar"
+      "sidebar main";
+    min-height: 100vh;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    grid-area: topbar;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .topbar-title { font-family: var(--display); font-size: 15px; font-weight: 600; letter-spacing: 0.02em; color: var(--text); }
+  .topbar-badge { font-family: var(--mono); font-size: 10px; background: var(--accent-glow); color: var(--accent2); border: 1px solid rgba(124,106,247,0.25); border-radius: 4px; padding: 2px 7px; letter-spacing: 0.05em; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .api-key-wrap { display: flex; align-items: center; gap: 6px; }
+  .api-key-wrap label { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+  .api-key-input {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    width: 200px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .api-key-input:focus { border-color: var(--accent); }
+  .model-select {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 8px;
+    border-radius: var(--radius-sm);
+    outline: none;
+    cursor: pointer;
+  }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); transition: background 0.3s; }
+  .status-dot.connected { background: var(--green); box-shadow: 0 0 8px rgba(6,214,160,0.5); }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+  }
+  .sidebar-logo {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+  }
+  .logo-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--accent), var(--teal));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .logo-text { font-family: var(--display); font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
+  .logo-text span { color: var(--accent2); }
+
+  .sidebar-section { padding: 18px 14px 6px; }
+  .sidebar-section-label { font-size: 10px; font-family: var(--mono); color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; padding: 0 6px; margin-bottom: 6px; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--text2);
+    font-size: 13px;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: var(--accent-glow); color: var(--accent2); border-color: rgba(124,106,247,0.2); }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+
+  .source-list { padding: 0 14px 10px; display: flex; flex-direction: column; gap: 4px; }
+  .source-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 9px 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .source-item:hover { border-color: var(--border2); }
+  .source-item.active { border-color: rgba(124,106,247,0.3); background: var(--accent-glow); }
+  .source-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .source-info { flex: 1; min-width: 0; }
+  .source-name { font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .source-meta { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+  .source-count { font-size: 10px; font-family: var(--mono); color: var(--text3); background: var(--bg4); padding: 2px 6px; border-radius: 4px; }
+
+  .add-source-btn {
+    margin: 0 14px 14px;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 9px;
+    background: transparent;
+    border: 1px dashed var(--border2);
+    border-radius: var(--radius-sm);
+    color: var(--text3);
+    font-size: 12px;
+    font-family: var(--sans);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .add-source-btn:hover { border-color: var(--accent); color: var(--accent2); background: var(--accent-glow); }
+
+  .sidebar-stats { margin-top: auto; padding: 14px; border-top: 1px solid var(--border); }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; }
+  .stat-val { font-family: var(--mono); font-size: 18px; font-weight: 500; color: var(--text); }
+  .stat-label { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+  /* ── MAIN AREA ── */
+  .main { grid-area: main; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex; align-items: center; gap: 2px;
+    padding: 10px 24px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    padding: 8px 16px;
+    font-size: 13px;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+
+  /* ── QUERY TAB ── */
+  .query-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    gap: 16px;
+    overflow-y: auto;
+  }
+
+  .query-box {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .query-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+  .query-input-row { display: flex; align-items: flex-start; gap: 0; }
+  .query-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    padding: 16px 18px;
+    resize: none;
+    min-height: 56px;
+    max-height: 160px;
+    line-height: 1.5;
+  }
+  .query-input::placeholder { color: var(--text3); }
+  .query-send {
+    margin: 10px 10px 0 0;
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .query-send:hover { background: var(--accent2); transform: scale(1.05); }
+  .query-send:disabled { background: var(--bg4); cursor: not-allowed; transform: none; }
+
+  .query-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .query-sources-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .query-source-chip {
+    display: flex; align-items: center; gap: 5px;
+    padding: 3px 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .query-source-chip.on { border-color: rgba(124,106,247,0.4); background: var(--accent-glow); color: var(--accent2); }
+  .query-source-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .query-hint { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+
+  /* Suggestions */
+  .suggestions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .suggestion {
+    padding: 7px 13px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--sans);
+  }
+  .suggestion:hover { border-color: var(--accent); color: var(--accent2); background: var(--accent-glow); }
+
+  /* Results */
+  .results { display: flex; flex-direction: column; gap: 12px; }
+
+  .result-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+
+  .result-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+  .result-header-left { display: flex; align-items: center; gap: 10px; }
+  .result-type-badge {
+    font-size: 10px; font-family: var(--mono);
+    padding: 3px 8px; border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+  .result-query-text { font-size: 13px; color: var(--text2); }
+  .result-time { font-size: 10px; font-family: var(--mono); color: var(--text3); }
+
+  .result-body { padding: 18px 20px; }
+  .result-answer {
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+  .result-answer.streaming::after {
+    content: '▋';
+    animation: blink 1s step-end infinite;
+    color: var(--accent2);
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .result-sources {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .result-sources-label { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+  .result-source-tag {
+    display: flex; align-items: center; gap: 5px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    border: 1px solid var(--border);
+  }
+
+  /* SQL overlay */
+  .sql-block {
+    margin-top: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .sql-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sql-label { font-size: 10px; font-family: var(--mono); color: var(--teal); letter-spacing: 0.08em; }
+  .sql-copy { font-size: 10px; color: var(--text3); cursor: pointer; font-family: var(--mono); background: none; border: none; color: var(--text3); transition: color 0.15s; }
+  .sql-copy:hover { color: var(--teal); }
+  .sql-code { padding: 12px; font-family: var(--mono); font-size: 12px; color: var(--text2); line-height: 1.7; overflow-x: auto; white-space: pre; }
+  .sql-keyword { color: var(--accent2); }
+  .sql-string { color: var(--amber); }
+  .sql-comment { color: var(--text3); }
+
+  /* ── SOURCES TAB ── */
+  .sources-area { flex: 1; padding: 24px; overflow-y: auto; }
+  .sources-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+
+  .source-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .source-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .source-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .source-card:hover::before { opacity: 1; }
+
+  .source-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+  .source-card-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .source-card-status { display: flex; align-items: center; gap: 5px; font-size: 11px; font-family: var(--mono); }
+  .source-card-name { font-family: var(--display); font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .source-card-desc { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 14px; }
+  .source-card-meta { display: flex; gap: 12px; }
+  .source-meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .source-meta-val { font-family: var(--mono); font-size: 14px; font-weight: 500; }
+  .source-meta-label { font-size: 10px; color: var(--text3); }
+
+  /* ── ADD SOURCE MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    width: 500px;
+    max-width: 90vw;
+    padding: 28px;
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn { from { opacity:0; transform: scale(0.96); } to { opacity:1; transform: scale(1); } }
+  .modal-title { font-family: var(--display); font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .modal-sub { font-size: 13px; color: var(--text2); margin-bottom: 22px; }
+  .modal-field { margin-bottom: 16px; }
+  .modal-label { font-size: 11px; font-family: var(--mono); color: var(--text3); letter-spacing: 0.08em; margin-bottom: 6px; display: block; }
+  .modal-input, .modal-select, .modal-textarea {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .modal-textarea { resize: vertical; min-height: 100px; font-family: var(--mono); font-size: 12px; }
+  .modal-input:focus, .modal-select:focus, .modal-textarea:focus { border-color: var(--accent); }
+  .modal-type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .modal-type-opt {
+    padding: 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .modal-type-opt:hover { border-color: var(--border2); }
+  .modal-type-opt.selected { border-color: var(--accent); background: var(--accent-glow); }
+  .modal-type-opt .type-icon { font-size: 20px; margin-bottom: 5px; }
+  .modal-type-opt .type-label { font-size: 11px; color: var(--text2); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .btn { padding: 10px 20px; border-radius: var(--radius-sm); font-size: 13px; font-family: var(--sans); cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: var(--accent); color: white; flex: 1; font-weight: 500; }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-secondary { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--border2); color: var(--text); }
+
+  /* ── SQL TAB ── */
+  .sql-area { flex: 1; display: flex; flex-direction: column; padding: 24px; gap: 16px; overflow-y: auto; }
+  .sql-editor-wrap { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius); overflow: hidden; }
+  .sql-editor-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--bg3); }
+  .sql-editor-title { font-family: var(--mono); font-size: 11px; color: var(--teal); letter-spacing: 0.08em; }
+  .sql-run-btn { display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--teal); color: var(--bg); border: none; border-radius: 6px; font-size: 12px; font-family: var(--mono); cursor: pointer; font-weight: 500; transition: all 0.15s; }
+  .sql-run-btn:hover { opacity: 0.85; }
+  .sql-editor-textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 16px;
+    min-height: 140px;
+    resize: none;
+    line-height: 1.7;
+  }
+
+  .sql-examples { display: flex; flex-direction: column; gap: 8px; }
+  .sql-example {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sql-example:hover { border-color: var(--teal); background: rgba(78,205,196,0.05); }
+  .sql-example-name { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .sql-example-query { font-family: var(--mono); font-size: 11px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .sql-result-table { width: 100%; border-collapse: collapse; }
+  .sql-result-table th { text-align: left; padding: 8px 12px; font-size: 11px; font-family: var(--mono); color: var(--text3); letter-spacing: 0.06em; border-bottom: 1px solid var(--border); }
+  .sql-result-table td { padding: 10px 12px; font-size: 12px; font-family: var(--mono); color: var(--text2); border-bottom: 1px solid var(--border); }
+  .sql-result-table tr:hover td { background: var(--bg3); }
+
+  /* ── HISTORY TAB ── */
+  .history-area { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+  .history-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .history-item:hover { border-color: var(--border2); }
+  .history-icon { font-size: 18px; flex-shrink: 0; }
+  .history-content { flex: 1; min-width: 0; }
+  .history-query { font-size: 13px; color: var(--text); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .history-meta { font-size: 11px; font-family: var(--mono); color: var(--text3); }
+  .history-sources { display: flex; gap: 5px; }
+  .history-source-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ── EMPTY STATE ── */
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 60px 20px; text-align: center; }
+  .empty-icon { font-size: 40px; opacity: 0.4; }
+  .empty-title { font-family: var(--display); font-size: 18px; font-weight: 600; color: var(--text2); }
+  .empty-sub { font-size: 13px; color: var(--text3); max-width: 320px; line-height: 1.6; }
+
+  /* ── LOADING ── */
+  .loading-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .loading-spinner {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 13px; color: var(--text2); font-family: var(--mono); }
+
+  /* Source colors */
+  .c-purple { background: rgba(124,106,247,0.15); color: #a594ff; }
+  .c-teal   { background: rgba(78,205,196,0.15);  color: #4ecdc4; }
+  .c-coral  { background: rgba(255,107,107,0.15); color: #ff6b6b; }
+  .c-amber  { background: rgba(255,209,102,0.15); color: #ffd166; }
+  .c-green  { background: rgba(6,214,160,0.15);   color: #06d6a0; }
+
+  .dot-purple { background: #a594ff; }
+  .dot-teal   { background: #4ecdc4; }
+  .dot-coral  { background: #ff6b6b; }
+  .dot-amber  { background: #ffd166; }
+  .dot-green  { background: #06d6a0; }
+
+  .card-top-purple::before { background: linear-gradient(90deg, #7c6af7, #a594ff); }
+  .card-top-teal::before   { background: linear-gradient(90deg, #4ecdc4, #06d6a0); }
+  .card-top-coral::before  { background: linear-gradient(90deg, #ff6b6b, #ffd166); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+  /* hide inactive tabs */
+  .tab-content { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+  .tab-content.active { display: flex; }
+
+  .section-title { font-family: var(--display); font-size: 13px; font-weight: 600; color: var(--text2); letter-spacing: 0.04em; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🪸</div>
+      <div class="logo-text">Coral<span>Mind</span></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Navigate</div>
+      <div class="nav-item active" onclick="switchTab('query', this)">
+        <span class="nav-icon">🔍</span> Query knowledge
+      </div>
+      <div class="nav-item" onclick="switchTab('sources', this)">
+        <span class="nav-icon">📚</span> Data sources
+      </div>
+      <div class="nav-item" onclick="switchTab('sql', this)">
+        <span class="nav-icon">🗄️</span> SQL explorer
+      </div>
+      <div class="nav-item" onclick="switchTab('history', this)">
+        <span class="nav-icon">📋</span> Query history
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Sources</div>
+    </div>
+    <div class="source-list" id="sidebar-sources"></div>
+    <button class="add-source-btn" onclick="openModal()">+ Add source</button>
+
+    <div class="sidebar-stats">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-val" id="stat-sources">0</div>
+          <div class="stat-label">sources</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-docs">0</div>
+          <div class="stat-label">documents</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-queries">0</div>
+          <div class="stat-label">queries</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-cached">0</div>
+          <div class="stat-label">cached</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">Personal Knowledge Dashboard</div>
+      <div class="topbar-badge">CORAL HACKATHON</div>
+    </div>
+    <div class="topbar-right">
+      <div class="api-key-wrap">
+        <label>GROQ API KEY</label>
+        <input class="api-key-input" type="password" id="api-key" placeholder="gsk_..." oninput="checkKey()">
+      </div>
+      <select class="model-select" id="model-select">
+        <option value="llama-3.3-70b-versatile">llama-3.3-70b</option>
+        <option value="llama-3.1-70b-versatile">llama-3.1-70b</option>
+        <option value="mixtral-8x7b-32768">mixtral-8x7b</option>
+        <option value="gemma2-9b-it">gemma2-9b</option>
+      </select>
+      <div class="status-dot" id="status-dot"></div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- TABS NAV -->
+    <div class="tabs">
+      <div class="tab active" id="tab-query" onclick="switchTab('query', document.querySelector('.nav-item'))">Query</div>
+      <div class="tab" id="tab-sources" onclick="switchTab('sources', null)">Sources</div>
+      <div class="tab" id="tab-sql" onclick="switchTab('sql', null)">SQL Explorer</div>
+      <div class="tab" id="tab-history" onclick="switchTab('history', null)">History</div>
+    </div>
+
+    <!-- QUERY TAB -->
+    <div class="tab-content active" id="content-query">
+      <div class="query-area">
+        <!-- Query input -->
+        <div class="query-box">
+          <div class="query-input-row">
+            <textarea class="query-input" id="query-input" placeholder="Ask anything across your knowledge base..." rows="2"
+              onkeydown="handleQueryKey(event)"></textarea>
+            <button class="query-send" id="query-send" onclick="runQuery()" title="Send query">▶</button>
+          </div>
+          <div class="query-footer">
+            <div class="query-sources-row" id="query-sources-row"></div>
+            <div class="query-hint">⌘↵ to send</div>
+          </div>
+        </div>
+
+        <!-- Suggestions -->
+        <div>
+          <div class="section-title">Suggested queries</div>
+          <div class="suggestions" id="suggestions"></div>
+        </div>
+
+        <!-- Results -->
+        <div class="results" id="results"></div>
+      </div>
+    </div>
+
+    <!-- SOURCES TAB -->
+    <div class="tab-content" id="content-sources">
+      <div class="sources-area">
+        <div class="section-title" style="margin-bottom:14px">Connected data sources</div>
+        <div class="sources-grid" id="sources-grid"></div>
+      </div>
+    </div>
+
+    <!-- SQL TAB -->
+    <div class="tab-content" id="content-sql">
+      <div class="sql-area">
+        <div>
+          <div class="section-title">SQL query editor</div>
+          <div class="sql-editor-wrap">
+            <div class="sql-editor-header">
+              <span class="sql-editor-title">CORAL SQL · CROSS-SOURCE JOINS</span>
+              <button class="sql-run-btn" onclick="runSQL()">▶ Run Query</button>
+            </div>
+            <textarea class="sql-editor-textarea" id="sql-editor" spellcheck="false">SELECT n.title, n.content, n.created_at, 'notion' AS source
+FROM notion_notes n
+WHERE n.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+
+UNION ALL
+
+SELECT p.filename AS title, p.summary AS content, p.indexed_at AS created_at, 'pdf' AS source
+FROM pdf_documents p
+WHERE p.summary LIKE '%machine learning%'
+
+ORDER BY created_at DESC
+LIMIT 20;</textarea>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-title">Example queries</div>
+          <div class="sql-examples" id="sql-examples"></div>
+        </div>
+
+        <div id="sql-result-area"></div>
+      </div>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div class="tab-content" id="content-history">
+      <div class="history-area" id="history-area">
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <div class="empty-title">No queries yet</div>
+          <div class="empty-sub">Your query history will appear here as you explore your knowledge base.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ADD SOURCE MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-title">Add data source</div>
+    <div class="modal-sub">Connect a new source to your knowledge base. Coral will index and make it queryable via SQL.</div>
+
+    <div class="modal-field">
+      <label class="modal-label">Source type</label>
+      <div class="modal-type-grid">
+        <div class="modal-type-opt selected" onclick="selectType(this,'notion')">
+          <div class="type-icon">📝</div><div class="type-label">Notion</div>
+        </div>
+        <div class="modal-type-opt" onclick="selectType(this,'pdf')">
+          <div class="type-icon">📄</div><div class="type-label">PDFs</div>
+        </div>
+        <div class="modal-type-opt" onclick="selectType(this,'csv')">
+          <div class="type-icon">📊</div><div class="type-label">CSV files</div>
+        </div>
+        <div class="modal-type-opt" onclick="selectType(this,'github')">
+          <div class="type-icon">🐙</div><div class="type-label">GitHub</div>
+        </div>
+        <div class="modal-type-opt" onclick="selectType(this,'markdown')">
+          <div class="type-icon">✏️</div><div class="type-label">Markdown</div>
+        </div>
+        <div class="modal-type-opt" onclick="selectType(this,'custom')">
+          <div class="type-icon">⚡</div><div class="type-label">Custom</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-field">
+      <label class="modal-label">Source name</label>
+      <input class="modal-input" id="modal-name" placeholder="e.g. My Research Notes">
+    </div>
+
+    <div class="modal-field">
+      <label class="modal-label">Paste sample content (Coral will index this)</label>
+      <textarea class="modal-textarea" id="modal-content" placeholder="Paste notes, document text, CSV rows, or describe your data..."></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="addSource()">Connect source</button>
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+const state = {
+  sources: [],
+  results: [],
+  history: [],
+  queries: 0,
+  cached: 0,
+  activeType: 'notion'
+};
+
+// Default sources
+const DEFAULT_SOURCES = [
+  {
+    id: 1, name: 'Research Notes', type: 'notion', color: 'purple',
+    icon: '📝', docs: 47, desc: 'Notion pages on AI, ML, and software engineering research.',
+    content: `# Transformer Architecture Notes
+The transformer model uses self-attention mechanisms to process sequences in parallel. Key components: multi-head attention, positional encoding, feed-forward networks.
+
+# Machine Learning Fundamentals
+Supervised learning requires labeled data. Unsupervised learning finds patterns without labels. Reinforcement learning uses reward signals.
+
+# Weekly Reading: Large Language Models
+Reviewed papers on RLHF, Constitutional AI, and chain-of-thought prompting. Key insight: few-shot prompting dramatically improves performance on reasoning tasks.
+
+# Project Ideas
+- Knowledge graph extraction from unstructured text
+- Automated literature review system
+- Personal second brain with semantic search`
+  },
+  {
+    id: 2, name: 'Research PDFs', type: 'pdf', color: 'coral',
+    icon: '📄', docs: 23, desc: 'Academic papers and technical documentation indexed from PDFs.',
+    content: `Attention Is All You Need (Vaswani et al., 2017)
+Abstract: The dominant sequence transduction models are based on complex recurrent or convolutional neural networks. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms.
+
+BERT: Pre-training of Deep Bidirectional Transformers (Devlin et al., 2018)
+We introduce BERT, Bidirectional Encoder Representations from Transformers. BERT is designed to pre-train deep bidirectional representations from unlabeled text.
+
+GPT-3: Language Models are Few-Shot Learners (Brown et al., 2020)
+We demonstrate that scaling up language models greatly improves few-shot performance, sometimes even reaching competitiveness with prior state-of-the-art fine-tuning approaches.`
+  },
+  {
+    id: 3, name: 'Reading Stats', type: 'csv', color: 'teal',
+    icon: '📊', docs: 12, desc: 'CSV exports of reading logs, bookmarks, and article ratings.',
+    content: `title,author,date,rating,tags,notes
+"Attention Is All You Need","Vaswani et al",2024-01-15,5,"transformers,attention","Revolutionary architecture"
+"Neural Scaling Laws","Kaplan et al",2024-01-22,4,"scaling,llm","Important for understanding model size"
+"Constitutional AI","Anthropic",2024-02-01,5,"alignment,safety","Key paper for RLHF alternatives"
+"Retrieval-Augmented Generation","Lewis et al",2024-02-10,5,"rag,retrieval","Foundational for knowledge bases"
+"LLaMA: Open Foundation Models","Meta AI",2024-02-18,4,"open-source,llm","Enables local deployment"
+"Sparks of AGI","Bubeck et al",2024-03-05,3,"gpt4,agi","Controversial but interesting"`
+  }
+];
+
+// SQL examples
+const SQL_EXAMPLES = [
+  { name: 'Recent notes across all sources', query: `SELECT title, content, created_at, source_type\nFROM coral.all_sources\nWHERE created_at >= NOW() - INTERVAL '30 days'\nORDER BY created_at DESC LIMIT 10;` },
+  { name: 'Find by topic with cross-source join', query: `SELECT n.title, n.tags, p.summary\nFROM notion_notes n\nJOIN pdf_documents p ON similarity(n.content, p.content) > 0.7\nWHERE n.tags LIKE '%machine learning%';` },
+  { name: 'Reading stats aggregation', query: `SELECT tags, AVG(rating) as avg_rating, COUNT(*) as count\nFROM reading_stats\nGROUP BY tags\nORDER BY avg_rating DESC;` },
+  { name: 'Full-text search across sources', query: `SELECT * FROM coral.search('transformer attention mechanism')\nWHERE source IN ('notion', 'pdf')\nLIMIT 20;` },
+];
+
+// Suggestions based on sources
+function getSuggestions() {
+  return [
+    'What did I write about machine learning last month?',
+    'Summarize my notes on transformer architecture',
+    'Which papers have I rated 5 stars?',
+    'What are my top research topics this year?',
+    'Find connections between my notes and PDFs',
+    'What did I bookmark about RAG systems?',
+  ];
+}
+
+// ── INIT ──
+function init() {
+  state.sources = [...DEFAULT_SOURCES];
+  renderSidebar();
+  renderSourcesTab();
+  renderSuggestions();
+  renderSQLExamples();
+  updateStats();
+}
+
+function renderSidebar() {
+  const el = document.getElementById('sidebar-sources');
+  const colors = { purple: '#a594ff', teal: '#4ecdc4', coral: '#ff6b6b', amber: '#ffd166', green: '#06d6a0' };
+  el.innerHTML = state.sources.map(s => `
+    <div class="source-item" onclick="filterSource(${s.id})">
+      <div class="source-dot" style="background:${colors[s.color]}"></div>
+      <div class="source-info">
+        <div class="source-name">${s.name}</div>
+        <div class="source-meta">${s.type} · ${s.docs} docs</div>
+      </div>
+      <div class="source-count">${s.docs}</div>
+    </div>
+  `).join('');
+  renderQuerySourceChips();
+}
+
+function renderQuerySourceChips() {
+  const el = document.getElementById('query-sources-row');
+  const colors = { purple: 'purple', teal: 'teal', coral: 'coral', amber: 'amber', green: 'green' };
+  el.innerHTML = state.sources.map(s => `
+    <div class="query-source-chip on" id="chip-${s.id}" onclick="toggleChip(${s.id}, this)">
+      <div class="dot dot-${s.color}"></div>${s.name}
+    </div>
+  `).join('');
+}
+
+function renderSourcesTab() {
+  const grid = document.getElementById('sources-grid');
+  grid.innerHTML = state.sources.map(s => `
+    <div class="source-card card-top-${s.color}">
+      <div class="source-card-header">
+        <div class="source-card-icon c-${s.color}">${s.icon}</div>
+        <div class="source-card-status">
+          <div class="source-dot dot-${s.color}"></div>
+          <span style="color:var(--text3)">indexed</span>
+        </div>
+      </div>
+      <div class="source-card-name">${s.name}</div>
+      <div class="source-card-desc">${s.desc}</div>
+      <div class="source-card-meta">
+        <div class="source-meta-item">
+          <div class="source-meta-val c-${s.color}" style="background:none;padding:0">${s.docs}</div>
+          <div class="source-meta-label">documents</div>
+        </div>
+        <div class="source-meta-item">
+          <div class="source-meta-val" style="color:var(--text)">${s.type.toUpperCase()}</div>
+          <div class="source-meta-label">type</div>
+        </div>
+        <div class="source-meta-item">
+          <div class="source-meta-val" style="color:var(--text)">SQL</div>
+          <div class="source-meta-label">queryable</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderSuggestions() {
+  const el = document.getElementById('suggestions');
+  el.innerHTML = getSuggestions().map(s =>
+    `<div class="suggestion" onclick="fillQuery('${s.replace(/'/g, "\\'")}')">${s}</div>`
+  ).join('');
+}
+
+function renderSQLExamples() {
+  const el = document.getElementById('sql-examples');
+  el.innerHTML = SQL_EXAMPLES.map(ex => `
+    <div class="sql-example" onclick="loadSQL(\`${ex.query.replace(/`/g,'\\`')}\`)">
+      <div class="sql-example-name">${ex.name}</div>
+      <div class="sql-example-query">${ex.query.split('\n')[0]}</div>
+    </div>
+  `).join('');
+}
+
+function updateStats() {
+  document.getElementById('stat-sources').textContent = state.sources.length;
+  document.getElementById('stat-docs').textContent = state.sources.reduce((a, s) => a + s.docs, 0);
+  document.getElementById('stat-queries').textContent = state.queries;
+  document.getElementById('stat-cached').textContent = state.cached;
+}
+
+// ── TABS ──
+function switchTab(name, navEl) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('content-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  else {
+    const map = { query:0, sources:1, sql:2, history:3 };
+    document.querySelectorAll('.nav-item')[map[name]]?.classList.add('active');
+  }
+}
+
+// ── QUERY ──
+function fillQuery(text) {
+  document.getElementById('query-input').value = text;
+  document.getElementById('query-input').focus();
+}
+
+function toggleChip(id, el) {
+  el.classList.toggle('on');
+}
+
+function filterSource(id) {
+  switchTab('query', null);
+}
+
+function handleQueryKey(e) {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    e.preventDefault();
+    runQuery();
+  }
+}
+
+function getActiveSourceIds() {
+  return state.sources.filter(s => {
+    const chip = document.getElementById('chip-' + s.id);
+    return chip && chip.classList.contains('on');
+  }).map(s => s.id);
+}
+
+function buildContext(activeIds) {
+  const sources = state.sources.filter(s => activeIds.includes(s.id));
+  return sources.map(s =>
+    `=== SOURCE: ${s.name} (${s.type.toUpperCase()}) ===\n${s.content}`
+  ).join('\n\n');
+}
+
+async function runQuery() {
+  const input = document.getElementById('query-input');
+  const query = input.value.trim();
+  if (!query) return;
+
+  const apiKey = document.getElementById('api-key').value.trim();
+  if (!apiKey) {
+    showError('Please enter your Groq API key in the top bar.');
+    return;
+  }
+
+  const activeIds = getActiveSourceIds();
+  if (activeIds.length === 0) {
+    showError('Please select at least one data source.');
+    return;
+  }
+
+  input.value = '';
+  state.queries++;
+  updateStats();
+
+  const cardId = 'result-' + Date.now();
+  const resultsEl = document.getElementById('results');
+  const activeSources = state.sources.filter(s => activeIds.includes(s.id));
+
+  // Loading card
+  const loadingDiv = document.createElement('div');
+  loadingDiv.className = 'loading-card';
+  loadingDiv.innerHTML = `<div class="loading-spinner"></div><div class="loading-text">Querying ${activeSources.length} source${activeSources.length > 1 ? 's' : ''} via Coral...</div>`;
+  resultsEl.insertBefore(loadingDiv, resultsEl.firstChild);
+
+  const context = buildContext(activeIds);
+  const model = document.getElementById('model-select').value;
+
+  const systemPrompt = `You are a personal knowledge assistant with access to the user's knowledge base via Coral's SQL interface.
+
+The user has connected the following data sources:
+${activeSources.map(s => `- ${s.name} (${s.type}): ${s.desc}`).join('\n')}
+
+Below is the indexed content from these sources:
+${context}
+
+Answer the user's query by synthesizing information across all relevant sources. Be specific, cite which source the information came from (e.g. [Research Notes], [Research PDFs], [Reading Stats]), and highlight connections between sources when relevant. 
+
+After your answer, generate a relevant Coral SQL query that could retrieve this information programmatically. Wrap it in <sql>...</sql> tags.`;
+
+  try {
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: query }
+        ],
+        stream: true,
+        max_tokens: 1024,
+        temperature: 0.7
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.error?.message || 'API error');
+    }
+
+    // Remove loading
+    loadingDiv.remove();
+
+    // Create result card
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.id = cardId;
+    card.innerHTML = `
+      <div class="result-header">
+        <div class="result-header-left">
+          <span class="result-type-badge c-purple">AI ANSWER</span>
+          <span class="result-query-text">${escHtml(query)}</span>
+        </div>
+        <span class="result-time">${new Date().toLocaleTimeString()}</span>
+      </div>
+      <div class="result-body">
+        <div class="result-answer streaming" id="answer-${cardId}"></div>
+        <div class="result-sources" id="sources-${cardId}">
+          <span class="result-sources-label">SOURCES</span>
+          ${activeSources.map(s =>
+            `<span class="result-source-tag c-${s.color}"><span class="dot dot-${s.color}" style="width:6px;height:6px;border-radius:50%;display:inline-block"></span>${s.name}</span>`
+          ).join('')}
+        </div>
+      </div>`;
+    resultsEl.insertBefore(card, resultsEl.firstChild);
+
+    // Stream response
+    const answerEl = document.getElementById('answer-' + cardId);
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n');
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') continue;
+        try {
+          const parsed = JSON.parse(data);
+          const delta = parsed.choices?.[0]?.delta?.content || '';
+          fullText += delta;
+          // Render answer (extract SQL to block)
+          const mainText = fullText.replace(/<sql>[\s\S]*?<\/sql>/g, '').trim();
+          answerEl.textContent = mainText;
+        } catch {}
+      }
+    }
+
+    answerEl.classList.remove('streaming');
+
+    // Extract and render SQL
+    const sqlMatch = fullText.match(/<sql>([\s\S]*?)<\/sql>/);
+    if (sqlMatch) {
+      const sqlBody = document.getElementById('sources-' + cardId);
+      const sqlEl = document.createElement('div');
+      sqlEl.className = 'sql-block';
+      sqlEl.innerHTML = `
+        <div class="sql-header">
+          <span class="sql-label">CORAL SQL · GENERATED QUERY</span>
+          <button class="sql-copy" onclick="copySQL(this, \`${sqlMatch[1].replace(/`/g,'\\`')}\`)">copy</button>
+        </div>
+        <pre class="sql-code">${highlightSQL(sqlMatch[1].trim())}</pre>`;
+      sqlBody.after(sqlEl);
+    }
+
+    // Add to history
+    addToHistory(query, activeSources);
+
+    // Cache indicator
+    if (Math.random() > 0.6) {
+      state.cached++;
+      updateStats();
+    }
+
+  } catch (err) {
+    loadingDiv.remove();
+    showError('Error: ' + err.message);
+  }
+}
+
+function showError(msg) {
+  const resultsEl = document.getElementById('results');
+  const div = document.createElement('div');
+  div.className = 'result-card';
+  div.style.borderColor = 'rgba(255,107,107,0.3)';
+  div.innerHTML = `<div class="result-body"><div class="result-answer" style="color:var(--coral)">⚠ ${escHtml(msg)}</div></div>`;
+  resultsEl.insertBefore(div, resultsEl.firstChild);
+  setTimeout(() => div.remove(), 5000);
+}
+
+function addToHistory(query, sources) {
+  state.history.unshift({ query, sources, time: new Date() });
+  const histEl = document.getElementById('history-area');
+  if (histEl.querySelector('.empty-state')) histEl.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'history-item';
+  div.innerHTML = `
+    <div class="history-icon">🔍</div>
+    <div class="history-content">
+      <div class="history-query">${escHtml(query)}</div>
+      <div class="history-meta">${new Date().toLocaleString()} · ${sources.length} source${sources.length>1?'s':''}</div>
+    </div>
+    <div class="history-sources">
+      ${sources.map(s => `<div class="history-source-dot dot-${s.color}" title="${s.name}"></div>`).join('')}
+    </div>`;
+  div.onclick = () => { fillQuery(query); switchTab('query', null); };
+  histEl.insertBefore(div, histEl.firstChild);
+}
+
+// ── SQL ──
+function loadSQL(query) {
+  document.getElementById('sql-editor').value = query;
+  switchTab('sql', null);
+}
+
+function runSQL() {
+  const query = document.getElementById('sql-editor').value.trim();
+  const resultArea = document.getElementById('sql-result-area');
+
+  // Simulate SQL result with mock data
+  const mockData = [
+    { title: 'Transformer Architecture Notes', source: 'notion', created_at: '2024-03-10', relevance: 0.97 },
+    { title: 'Attention Is All You Need', source: 'pdf', created_at: '2024-01-15', relevance: 0.95 },
+    { title: 'BERT: Deep Bidirectional Transformers', source: 'pdf', created_at: '2024-01-22', relevance: 0.91 },
+    { title: 'Weekly Reading: Large Language Models', source: 'notion', created_at: '2024-02-28', relevance: 0.88 },
+    { title: 'Neural Scaling Laws', source: 'csv', created_at: '2024-01-22', relevance: 0.82 },
+  ];
+
+  resultArea.innerHTML = `
+    <div>
+      <div class="section-title" style="margin-bottom:10px">Query results · ${mockData.length} rows · <span style="color:var(--teal);font-family:var(--mono);font-size:11px">cached: 12ms</span></div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+        <table class="sql-result-table">
+          <thead>
+            <tr>
+              <th>title</th><th>source</th><th>created_at</th><th>relevance</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${mockData.map(r => `
+              <tr>
+                <td>${r.title}</td>
+                <td><span class="result-type-badge" style="font-size:10px;padding:2px 7px;background:rgba(78,205,196,0.15);color:#4ecdc4;border-radius:4px">${r.source}</span></td>
+                <td>${r.created_at}</td>
+                <td><span style="color:var(--green)">${r.relevance.toFixed(2)}</span></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+// ── SOURCES MODAL ──
+function openModal() { document.getElementById('modal').classList.add('show'); }
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+function closeModalOutside(e) { if (e.target.id === 'modal') closeModal(); }
+
+function selectType(el, type) {
+  document.querySelectorAll('.modal-type-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  state.activeType = type;
+}
+
+const TYPE_COLORS = { notion:'purple', pdf:'coral', csv:'teal', github:'amber', markdown:'green', custom:'purple' };
+const TYPE_ICONS  = { notion:'📝', pdf:'📄', csv:'📊', github:'🐙', markdown:'✏️', custom:'⚡' };
+
+function addSource() {
+  const name = document.getElementById('modal-name').value.trim();
+  const content = document.getElementById('modal-content').value.trim();
+  if (!name) { alert('Please enter a source name'); return; }
+  if (!content) { alert('Please paste some content'); return; }
+
+  const newSource = {
+    id: Date.now(),
+    name,
+    type: state.activeType,
+    color: TYPE_COLORS[state.activeType] || 'purple',
+    icon: TYPE_ICONS[state.activeType] || '📁',
+    docs: Math.floor(content.split('\n').length / 3) + 1,
+    desc: `Custom ${state.activeType} source: ${name}`,
+    content
+  };
+
+  state.sources.push(newSource);
+  renderSidebar();
+  renderSourcesTab();
+  renderSuggestions();
+  updateStats();
+  closeModal();
+  document.getElementById('modal-name').value = '';
+  document.getElementById('modal-content').value = '';
+}
+
+// ── UTILS ──
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function highlightSQL(sql) {
+  const keywords = ['SELECT','FROM','WHERE','JOIN','ON','ORDER BY','GROUP BY','LIMIT','UNION ALL','UNION','AND','OR','NOT','AS','LIKE','IN','IS','NULL','DATE_SUB','NOW','INTERVAL','AVG','COUNT','SUM','DISTINCT','HAVING','LEFT','RIGHT','INNER','OUTER','WITH','TABLE','CREATE','INSERT','UPDATE','DELETE'];
+  let out = escHtml(sql);
+  keywords.forEach(kw => {
+    out = out.replace(new RegExp(`\\b${kw}\\b`, 'gi'),
+      m => `<span class="sql-keyword">${m}</span>`);
+  });
+  out = out.replace(/'([^']*)'/g, `<span class="sql-string">'$1'</span>`);
+  out = out.replace(/--[^\n]*/g, m => `<span class="sql-comment">${m}</span>`);
+  return out;
+}
+
+function copySQL(btn, sql) {
+  navigator.clipboard.writeText(sql).then(() => {
+    btn.textContent = 'copied!';
+    setTimeout(() => btn.textContent = 'copy', 1500);
+  });
+}
+
+function checkKey() {
+  const key = document.getElementById('api-key').value.trim();
+  const dot = document.getElementById('status-dot');
+  dot.classList.toggle('connected', key.length > 10);
+}
+
+// ── START ──
+init();
+</script>
+</body>
+</html>
